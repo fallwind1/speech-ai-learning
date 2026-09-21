@@ -1,0 +1,4 @@
+OS: Windows 11
+Python: 3.13.9
+Git: 2.55.0.windows.5
+Editor: Visual Studio Code
