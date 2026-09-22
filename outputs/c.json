@@ -1,0 +1,17 @@
+{
+  "chinese_count": 4,
+  "chinese_freq": {
+    "语": 2,
+    "音": 2
+  },
+  "english_count": 7,
+  "english_freq": {
+    "Python": 1,
+    "python": 1,
+    "PYTHON": 1,
+    "C": 1,
+    "and": 1,
+    "ASR": 1,
+    "LLM": 1
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "chinese_count": 6,
+  "chinese_freq": {
+    "你": 2,
+    "好": 2,
+    "世": 1,
+    "界": 1
+  },
+  "english_count": 6,
+  "english_freq": {
+    "AI": 2,
+    "Hello": 2,
+    "world": 1,
+    "Speech": 1
+  }
+}
