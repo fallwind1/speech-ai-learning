@@ -104,10 +104,13 @@ axes[0].plot(range(0,200,10),loss_history1,label="normal")
 axes[0].plot(range(0,200,10),loss_history2,label="no zero_grad")
 axes[0].plot(range(0,200,10),loss_history3,label="fixed")
 axes[0].set(title="Training curve", xlabel="Epoch", ylabel="Loss")
+axes[0].legend()
 axes[1].plot(x.detach().numpy(),pred1,label="pred1")
 axes[1].plot(x.detach().numpy(),pred2,label="pred2")
 axes[1].plot(x.detach().numpy(),pred3,label="pred3")
 axes[1].set(title="pred curve", xlabel="x", ylabel="y_pred")
+axes[1].legend()
+plt.tight_layout()
 plt.savefig(
     "figures/w01_loss,png",
     dpi=600
