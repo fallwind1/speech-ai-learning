@@ -1505,15 +1505,15 @@ MNIST 官方 test set
 
 **Test：**
 
-> 
+> 保持独立，用于模型开发结束后的最终评估。
 
 **不重叠：**
 
-> 
+> 同一个sample不会同时出现在train和validation中
 
 一句话总结：
 
-> 
+> 先从MNIST training set随机选择一个可复现的小型Subset，再将其随即划分为互不重叠的train和validation；train用于参数学习，validation用于模型和超参数选择，而test保持独立用于最终评估。
 
 ---
 
@@ -1523,7 +1523,7 @@ MNIST 官方 test set
 
 问题：
 
-> 
+> 不同实验的初始条件不同，会导致对照实验受到前一次训练结果污染。
 
 ---
 
@@ -1531,7 +1531,7 @@ MNIST 官方 test set
 
 会导致：
 
-> 
+> validation中出现模型已经直接训练过的样本，使validation结果过于乐观，不能真实反映泛化能力。
 
 ---
 
@@ -1539,7 +1539,7 @@ MNIST 官方 test set
 
 会导致：
 
-> 
+> test 信息泄漏到超参数选择过程，使 test 不再是独立的最终评估集合。
 
 ---
 
@@ -1547,7 +1547,7 @@ MNIST 官方 test set
 
 会导致：
 
-> 
+> 每次实验可能得到不同 subset 或 train/val 划分，使结果难以复现和公平比较。
 
 ---
 
@@ -1555,4 +1555,414 @@ MNIST 官方 test set
 
 问题：
 
+> 如果 validation 也参与 backward 和 optimizer.step()，它就实际上变成了训练数据，失去了独立验证模型泛化能力的作用。
+
+
+## 4. DataLoader、Batch 与 Shuffle
+
+### 4.1 DataLoader
+
+`DataLoader` 的核心作用：
+
+> 决定以什么顺序取Dataset中的样本，以及怎么把多个sample自动组合成一个batch
+
+基本写法：
+
+```python
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=________,
+    shuffle=________,
+)
+
+val_loader = DataLoader(
+    val_dataset,
+    batch_size=________,
+    shuffle=________,
+)
+```
+
+其中：
+
+- `dataset`：从哪个数据集中取样本
+- `batch_size`：一批样本的大小
+- `shuffle`：是否打乱样本读取顺序
+
+---
+
+### 4.2 Batch 与 Step
+
+假设：
+
+```text
+train samples = 1600
+batch_size = 64
+```
+
+则一个完整 epoch 大约有：
+
+```text
+batch 数量 = 25
+```
+
+在普通 mini-batch 训练中：
+
+```text
+一个 batch
+→ forward
+→ loss
+→ backward
+→ optimizer.step()
+```
+
+因此通常：
+
+```text
+一个 batch ≈ 1 个 parameter update
+一个 epoch = 处理完所有训练样本一次
+```
+
+---
+
+### 4.3 Shuffle
+
+`shuffle=True` 表示：
+
+> 打乱样本被读取的顺序
+
+它改变的是：
+
+> 样本被读取的顺序
+
+它不会改变：
+
+> 图片内容、label、Dataset 中到底有哪些样本
+
+训练集通常：
+
+```text
+shuffle = True
+```
+
+原因：
+
+> 为了避免固定顺序让连续 batch 总呈现特定结构，使 mini-batch 更具有混合性。
+
+验证集通常：
+
+```text
+shuffle = False
+```
+
+原因：对于普通确定性评估，同一批验证样本无论按什么顺序遍历，最终整体 loss/accuracy 不应因为顺序不同而改变，因此没有必要 shuffle。
+
 > 
+
+---
+
+### 4.4 实际创建 DataLoader
+
+```python
+from torch.utils.data import DataLoader
+
+BATCH_SIZE = ________
+
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+)
+
+val_loader = DataLoader(
+    val_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=False,
+)
+```
+
+本次配置：
+
+```text
+train samples = 1600
+val samples = 400
+batch_size = 64
+```
+
+---
+
+### 4.5 取出一个 Batch
+
+```python
+images, labels = next(iter(train_loader))
+```
+
+这里：
+
+```text
+iter(train_loader)
+→ 获得一个迭代器
+
+next(...)
+→ 取出第一个batch
+```
+
+实际检查：
+
+```python
+print(images.shape)
+print(images.dtype)
+
+print(labels.shape)
+print(labels.dtype)
+```
+
+实际输出：
+
+```text
+images.shape = (64,1,28,28)
+images.dtype = torch.float32
+
+labels.shape = (64,)
+labels.dtype = torch.int64
+```
+
+各维度含义：
+
+```text
+images.shape = (B, C, H, W)
+
+B = batchsize
+C = channel
+H = height
+W = width
+```
+
+---
+
+### 4.6 与 CrossEntropyLoss 的 Shape 对接
+
+假设：
+
+```text
+batch_size = B
+MNIST classes = 10
+```
+
+DataLoader 给出：
+
+```text
+images.shape = (B,1,28,28)
+labels.shape = (B)
+```
+
+模型处理后：
+
+```text
+logits.shape = (64,10)
+```
+
+因此：
+
+```python
+logits = model(images)
+loss = criterion(logits, labels)
+```
+
+对应关系：
+
+```text
+images
+↓
+model
+↓
+logits: (64,10)
+
+labels: (64,)
+
+↓
+CrossEntropyLoss
+```
+
+---
+
+### 4.7 本模块实验结论
+
+我实际验证：
+
+```text
+train batch shape = (64,1,28,28)
+val batch shape = (64,1,28,28)
+
+batch shape 是否正确：
+正确，实际运行结果应与设置的 batch_size 和 MNIST 图片 shape 对应。
+```
+
+`Dataset` 与 `DataLoader` 的关系：
+
+> Dataset负责保存和按索引访问sample；DataLoader在Dataset基础上决定样本的读取顺序，并自动将多个sample组成batch，提供给训练或验证循环。
+
+`batch_size` 与 step 的关系：
+
+> 在普通mini-batch训练中，一个batch通常执行一次forward、backward和optimizer.step()，因此一个batch通常对应一个训练step
+
+`shuffle` 的作用：
+
+> 改变每个 epoch 中样本的访问顺序和 batch 组合，而不会改变 Dataset 中的数据内容。训练集通常使用 shuffle=True，验证集通常使用 shuffle=False。
+
+
+## 5. W2D2 验收：Batch Shape 与 Train/Val 不重叠
+
+### 5.1 验收目标
+
+本次需要验证：
+
+```text
+验收 1：
+random_split产生互不重叠的两个dataset
+
+验收 2：
+batch shape
+```
+
+本次数据配置：
+
+```text
+SUBSET_SIZE = 2000
+TRAIN_SIZE = 1600
+VAL_SIZE = 400
+BATCH_SIZE = 64
+```
+
+---
+
+### 5.2 验证 Train / Val 不重叠
+
+代码：
+
+```python
+train_indices = set(train_dataset.indices)
+val_indices = set(val_dataset.indices)
+
+overlap = train_indices & val_indices
+```
+
+实际结果：
+
+```text
+train samples = 1600
+val samples = 400
+overlap size = 0
+```
+
+判断：
+
+```text
+len(overlap) == 0
+```
+
+表示：
+
+> 两个dataset没有重叠部分
+
+可以使用：
+
+```python
+assert len(overlap) == 0
+```
+
+`assert` 的作用：
+
+> 认为assert condition中condition必须为True，否则程序应该立刻报错。
+
+---
+
+### 5.3 验证 Batch Shape
+
+代码：
+
+```python
+images, labels = next(iter(train_loader))
+
+print(images.shape)
+print(labels.shape)
+```
+
+实际输出：
+
+```text
+images.shape = (64,1,28,28)
+labels.shape = (64,)
+```
+
+预期：
+
+```text
+images.shape = (BATCH_SIZE, 1, 28, 28)
+labels.shape = (BATCH_SIZE,)
+```
+
+其中：
+
+```text
+BATCH_SIZE → 64
+1 → C
+28 → H
+28 → W
+```
+
+使用断言：
+
+```python
+assert images.shape == (
+    BATCH_SIZE,
+    1,
+    28,
+    28,
+)
+
+assert labels.shape == (
+    BATCH_SIZE,
+)
+```
+
+如果程序没有触发 `AssertionError`：
+
+> 说明batch shape与预期相符
+
+---
+
+### 5.4 最终验收结论
+
+数据流程：
+
+```text
+MNIST training set
+↓
+subset
+↓
+small_mnist
+↓
+random_split
+↓
+train_dataset / val_dataset
+↓
+dataloader
+↓
+train_loader / val_loader
+↓
+(images, labels)
+```
+
+最终结果：
+
+```text
+train / val 是否重叠：
+不重叠
+
+train batch shape 是否正确：
+正确
+```
+
+一句话总结：
+
+> W2D2完成了从MNIST Dataset到小型Subset、train/validation划分以及DataLoader batch的完整数据管线，并通过index交集和Tensor shape两项检查确认train/val无样本重叠且batch结构正确。
