@@ -44,7 +44,7 @@ class MLP(nn.Module):
         super().__init__()      #调用当前类的父类的 __init__() 方法，也就是初始化父类。
 
         self.model = nn.Sequential(
-            nn.Flatten(),
+            nn.Flatten(),         #不需要知道展开为什么形状，因为Flatten()是将Tensor从某个维度（默认dim=1）到最后一维展平成一维
             nn.Linear(784,hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim,10)
