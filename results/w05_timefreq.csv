@@ -1,0 +1,5 @@
+﻿experiment_group,condition,sr_hz,tone1_hz,tone2_hz,tone_gap_hz,window,win_length_samples,observation_duration_ms,n_fft,fft_bins,frequency_grid_spacing_hz,approx_hann_mainlobe_null_to_null_hz,resolved_as_two_peaks,observation
+win_length,short_window,16000,1000,1025,25,Hann,400,25.0,16384,8193,0.9765625,160.0,no,宽峰合并，两个频率未清晰分离
+win_length,long_window,16000,1000,1025,25,Hann,1600,100.0,16384,8193,0.9765625,40.0,yes,出现两个可区分的峰值
+n_fft,coarse_grid,16000,1000,1025,25,Hann,400,25.0,1024,513,15.625,160.0,no,频率网格较稀疏，两个频率未清晰分离
+n_fft,dense_grid,16000,1000,1025,25,Hann,400,25.0,16384,8193,0.9765625,160.0,no,频率网格变密，但两个频率仍未清晰分离
