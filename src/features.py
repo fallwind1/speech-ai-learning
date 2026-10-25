@@ -83,3 +83,39 @@ def compute_log_magnitude_db(
     )
 
     return S_db
+
+def hz_to_mel(frequencies, *, scale="htk"):
+    """
+    Hz 转换为 Mel。
+
+    scale:
+        "htk"    : HTK Mel scale
+        "slaney" : Slaney Mel scale
+    """
+    f = np.asarray(frequencies, dtype=np.float64)
+
+    if not np.all(np.isfinite(f)) or np.any(f < 0):
+        raise ValueError("frequencies必须是非负有限值")
+
+    if scale == "htk":
+        mel = 2595.0 * np.log10(1.0 + f / 700.0)
+
+    elif scale == "slaney":
+        #1000Hz以下：线性
+        f_sp = 200.0 / 3.0
+        linear_mel = f / f_sp
+
+        #1000Hz以上：对数
+        logstep = np.log(6.4) / 27.0
+        log_mel = (
+            15.0
+            + np.log(np.maximum(f, 1000.0) / 1000.0)
+            / logstep
+        )
+
+        mel = np.where(f < 1000.0, linear_mel, log_mel)
+    
+    else:
+        raise ValueError("scale 必须是 'htk' 或 'slaney'")
+
+    return mel.item() if mel.ndim == 0 else mel
