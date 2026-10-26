@@ -20,4 +20,4 @@ Thumbs.db
 *.flac
 
 #local_backups
-D:\Projects\speech-ai-learning\data\local_backups
+data/local_backups
