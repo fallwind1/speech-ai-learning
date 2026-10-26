@@ -119,3 +119,97 @@ def hz_to_mel(frequencies, *, scale="htk"):
         raise ValueError("scale 必须是 'htk' 或 'slaney'")
 
     return mel.item() if mel.ndim == 0 else mel
+
+
+def waveform_to_mel(
+        waveform,
+        sr:int,
+        *,
+        n_fft:int=1024,
+        win_length:int=800,
+        hop_length:int=160,
+        window:str="hann",
+        center:bool=True,
+        pad_mode:str="constant",
+        n_mels:int=80,
+        fmin:float=0.0,
+        fmax:float | None = None,
+        htk:bool=False,
+        norm:str="slaney",
+        eps:float=1e-10
+)->np.ndarray:
+    """
+    教学版 waveform -> Log-Mel 功率谱（dB）。
+
+    固定处理约定：
+    - 输入：一维单声道 waveform，采样率由 sr 指定
+    - 功率谱：abs(STFT) ** 2
+    - Mel：librosa.filters.mel
+    - Log：10 * log10(max(mel_power, eps))
+    - dB 功率参考值：1.0
+    - 不使用 top_db 截断
+    - 不进行自动重采样、补齐固定时长或 Whisper 特殊归一化
+
+    返回形状：(n_mels, n_frames)
+    """
+    y = np.asarray(waveform, dtype=np.float64)
+
+    if y.ndim != 1 or y.size == 0:
+        raise ValueError("waveform 必须为非空一维数组")
+
+    if not np.all(np.isfinite(y)):
+        raise ValueError("waveform 不能包含 NaN 或 Inf")
+
+    if sr <= 0:
+        raise ValueError("sr 必须大于 0")
+
+    if not (0 < win_length <= n_fft):
+        raise ValueError("必须满足 0 < win_length <= n_fft")
+
+    if hop_length <= 0 or n_mels <= 0:
+        raise ValueError("hop_length 和 n_mels 必须大于 0")
+
+    if not np.isfinite(eps) or eps <= 0:
+        raise ValueError("eps必须为正的有限数值")
+
+    if fmax is None:
+        fmax = sr / 2
+
+    if not(0 <= fmin < fmax <= sr/2):
+        raise ValueError("需要满足 0 <= fmin < fmax <= sr/2")
+
+    #1.计算复数STFT
+    D = librosa.stft(
+        y=y,
+        n_fft=n_fft,
+        win_length = win_length,
+        hop_length=hop_length,
+        window=window,
+        center=center,
+        pad_mode=pad_mode
+    )
+
+    #2.功率谱，形状(F,T)
+    power_spec = np.abs(D) ** 2
+
+    #3.Mel滤波器组，形状(M,F)
+    mel_filter = librosa.filters.mel(
+        sr=sr,
+        n_fft=n_fft,
+        n_mels=n_mels,
+        fmin=fmin,
+        fmax=fmax,
+        htk=htk,
+        norm=norm,
+        dtype=np.float64
+    )
+
+    #4.Mel功率谱，形状(M,T)
+    mel_power = mel_filter @ power_spec
+
+    #5.功率dB,参考值为1
+    log_mel = 10.0 * np.log10(
+        np.maximum(mel_power, eps)
+    )
+
+    return log_mel
