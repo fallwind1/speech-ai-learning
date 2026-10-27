@@ -1,0 +1,4 @@
+﻿duration_sec,original_samples,effective_samples,padded_samples,truncated_samples,feature_shape
+5,80000,80000,400000,0,"(1, 80, 3000)"
+30,480000,480000,0,0,"(1, 80, 3000)"
+35,560000,480000,0,80000,"(1, 80, 3000)"

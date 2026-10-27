@@ -1,0 +1,4 @@
+﻿checkpoint,sampling_rate,feature_size,num_mel_bins,n_fft,hop_length,chunck_length,n_samples,nb_max_frames,padding_side,return_attention_mask,max_source_positions
+openai/whisper-small,16000,80,80,400,160,30,480000,3000,right,False,1500
+openai/whisper-large-v3,16000,128,128,400,160,30,480000,3000,right,False,1500
+openai/whisper-large-v3-turbo,16000,128,128,400,160,30,480000,3000,right,False,1500
