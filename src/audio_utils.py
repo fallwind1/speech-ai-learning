@@ -128,11 +128,31 @@ def save_audio(
     #soundfile要求：
     #(time,) 或 (time,channel)
 
-    audio = waveform.squeeze(0)     #squeeze去掉第0维，即将channel去掉变为(time,)
+    #audio = waveform.squeeze(0)     #squeeze去掉第0维，即将channel去掉变为(time,)
+
+    #转到CPU，并确保不参与梯度计算
+    waveform = waveform.detach().cpu().float()
+
+    if waveform.ndim == 1:
+        audio = waveform.numpy()
+
+    elif waveform.ndim == 2:
+        if waveform.size(0) == 1:
+            # 单声道：(1,T) -> (T,)
+            audio = waveform[0].numpy()
+
+        else:
+            # 多声道：(C,T) -> (T,C)
+            audio = waveform.transpose(0, 1).contiguous().numpy()
+
+    else:
+        raise ValueError(
+            "Expected waveform shape (T,) or (C,T)"
+        )
 
     sf.write(
         path,
-        audio.numpy(),
+        audio,
         sample_rate
     )
 
