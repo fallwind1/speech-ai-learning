@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from huggingface_hub import model_info
 import torch
 
 from transformers import (
@@ -32,11 +32,15 @@ def load_whisper_model(
 
     device = torch.device(device)
 
+    #确定模型版本
+    info = model_info(checkpoint)
+    model_revision = info.sha
+
     #加载Processor
-    processor = WhisperProcessor.from_pretrained(checkpoint)
+    processor = WhisperProcessor.from_pretrained(checkpoint,revision=model_revision)
 
     #加载模型
-    model = WhisperForConditionalGeneration.from_pretrained(checkpoint)
+    model = WhisperForConditionalGeneration.from_pretrained(checkpoint,revision=model_revision)
 
     model = model.to(device)
 

@@ -1,0 +1,26 @@
+{
+    "created_at": "2026-11-07T16:24:25.441027+00:00",
+    "split": "dev",
+    "model_name": "openai/whisper-small",
+    "model_revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+    "language": "zh",
+    "task": "transcribe",
+    "max_new_tokens": 96,
+    "device": "cuda:0",
+    "normalizer_version": "w7d4-v1-draft",
+    "scoring_version": "w7d6-v1",
+    "num_samples": 10,
+    "metrics": {
+        "num_samples": 10,
+        "CER": 0.33136094674556216,
+        "CER_S": 54,
+        "CER_D": 2,
+        "CER_I": 0,
+        "CER_N": 169,
+        "MER": 0.33136094674556216,
+        "MER_S": 54,
+        "MER_D": 2,
+        "MER_I": 0,
+        "MER_N": 169
+    }
+}
