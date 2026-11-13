@@ -1,0 +1,40 @@
+{
+  "dataset": "openslr/librispeech_asr",
+  "configuration": "clean",
+  "split": "validation",
+  "sample_count": 20,
+  "selection": "first_20",
+  "speaker_count": 1,
+  "chapter_count": 1,
+  "ctc_checkpoint": "facebook/wav2vec2-base-960h",
+  "whisper_checkpoint": "openai/whisper-small",
+  "whisper_language": "en",
+  "whisper_task": "transcribe",
+  "normalizer_version": "w7d4-v1-draft",
+  "normalizer_sha256": "c991d17cacdbbf530ce3f7f5cca6f2891a2ac78acb9f5157978725f28d433639",
+  "scoring_sha256": "a45647f17030c0ab11e6e2259cc1ddf5966684fc5251b4ac799306230c7fc350",
+  "tokenization": "normalize_score_then_whitespace_split",
+  "aggregation": "corpus_level",
+  "ctc_metrics": {
+    "S": 6,
+    "D": 0,
+    "I": 0,
+    "N": 321,
+    "distance": 6,
+    "error_rate": 0.018691588785046728
+  },
+  "whisper_metrics": {
+    "S": 9,
+    "D": 3,
+    "I": 0,
+    "N": 321,
+    "distance": 12,
+    "error_rate": 0.037383177570093455
+  },
+  "limitations": [
+    "All 20 clips come from speaker 2277, chapter 149896",
+    "Small, non-random, correlated evaluation sample",
+    "Model differences do not establish architecture causality",
+    "English checkpoint excluded from Chinese mixed-language ranking"
+  ]
+}
