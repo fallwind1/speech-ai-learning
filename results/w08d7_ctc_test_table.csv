@@ -1,0 +1,11 @@
+﻿test_name,module,duration_sec,status,failure_detail
+test_bruteforce_matches_dp,tests.test_ctc,0.005,PASS,
+test_repeated_tokens,tests.test_ctc,0.003,PASS,
+test_empty_target,tests.test_ctc,0.002,PASS,
+test_impossible_alignment,tests.test_ctc,0.002,PASS,
+test_repeated_tokens,tests.test_ctc_decode,0.002,PASS,
+test_blank_separates_repeated_tokens,tests.test_ctc_decode,0.001,PASS,
+test_consecutive_blanks,tests.test_ctc_decode,0.002,PASS,
+test_all_blank,tests.test_ctc_decode,0.001,PASS,
+test_empty_path,tests.test_ctc_decode,0.001,PASS,
+test_greedy_decode,tests.test_ctc_decode,0.002,PASS,
